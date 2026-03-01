@@ -1,0 +1,44 @@
+{
+  "configurations": [
+    {
+      "type": "swift",
+      "request": "launch",
+      "args": [],
+      "cwd": "${workspaceFolder:ffcontainerselect}",
+      "name": "Debug ffcontainerselect",
+      "target": "ffcontainerselect",
+      "configuration": "debug",
+      "preLaunchTask": "swift: Build Debug ffcontainerselect"
+    },
+    {
+      "type": "swift",
+      "request": "launch",
+      "args": [],
+      "cwd": "${workspaceFolder:ffcontainerselect}",
+      "name": "Release ffcontainerselect",
+      "target": "ffcontainerselect",
+      "configuration": "release",
+      "preLaunchTask": "swift: Build Release ffcontainerselect"
+    },
+    {
+      "type": "swift",
+      "request": "launch",
+      "args": [],
+      "cwd": "${workspaceFolder:LinkPaw}",
+      "name": "Debug LinkPaw",
+      "target": "LinkPaw",
+      "configuration": "debug",
+      "preLaunchTask": "swift: Build Debug LinkPaw"
+    },
+    {
+      "type": "swift",
+      "request": "launch",
+      "args": [],
+      "cwd": "${workspaceFolder:LinkPaw}",
+      "name": "Release LinkPaw",
+      "target": "LinkPaw",
+      "configuration": "release",
+      "preLaunchTask": "swift: Build Release LinkPaw"
+    }
+  ]
+}
