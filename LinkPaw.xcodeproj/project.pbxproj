@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		D08968A7D9A7471C95FA4F93 /* IconView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F9378938F1640C1AFBAA12E /* IconView.swift */; };
+		A3E1E471F7DC4AC9B8035B81 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 54B4BA68C7EE48CB934EDB86 /* Assets.xcassets */; };
 		9413EBA72341428C960006A5 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EEFBB4959764D0E896D8164 /* ContentView.swift */; };
 		C665DBBB6B5E4FA6A5F703F8 /* LinkPawApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05720A92CBBC4555848F8A65 /* LinkPawApp.swift */; };
 		ED80CCB70C0442F0B284488C /* StubGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6A1AB8CFB2430690F31390 /* StubGenerator.swift */; };
@@ -15,6 +17,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		0F9378938F1640C1AFBAA12E /* IconView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IconView.swift; sourceTree = "<group>"; };
+		54B4BA68C7EE48CB934EDB86 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		CF50958418714073B8332B29 /* LinkPaw.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LinkPaw.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9EEFBB4959764D0E896D8164 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		05720A92CBBC4555848F8A65 /* LinkPawApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LinkPawApp.swift; sourceTree = "<group>"; };
@@ -45,6 +49,8 @@
 		5B3FC25D2F004BFBBEC61692 /* LinkPaw */ = {
 			isa = PBXGroup;
 			children = (
+				0F9378938F1640C1AFBAA12E /* IconView.swift */,
+				54B4BA68C7EE48CB934EDB86 /* Assets.xcassets */,
 				9EEFBB4959764D0E896D8164 /* ContentView.swift */,
 				05720A92CBBC4555848F8A65 /* LinkPawApp.swift */,
 				CA6A1AB8CFB2430690F31390 /* StubGenerator.swift */,
@@ -119,6 +125,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A3E1E471F7DC4AC9B8035B81 /* Assets.xcassets in Resources */,
 				BD07A2D676DB4BFDA27AA9FA /* Info.plist in Resources */,
 				5C48E1FABC7047A2BDBD24C8 /* scripts/firefox-container in Resources */,
 			);
@@ -131,6 +138,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D08968A7D9A7471C95FA4F93 /* IconView.swift in Sources */,
 				9413EBA72341428C960006A5 /* ContentView.swift in Sources */,
 				C665DBBB6B5E4FA6A5F703F8 /* LinkPawApp.swift in Sources */,
 				ED80CCB70C0442F0B284488C /* StubGenerator.swift in Sources */,
@@ -257,6 +265,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
@@ -276,6 +285,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;

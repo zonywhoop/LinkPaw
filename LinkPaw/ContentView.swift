@@ -113,6 +113,7 @@ struct ContentView: View {
                                     withAnimation {
                                         proxy.scrollTo(match.id, anchor: .top)
                                     }
+                                    return .handled
                                 }
                             }
                             return .ignored
@@ -120,8 +121,8 @@ struct ContentView: View {
                     }
                 } else {
                     VStack(spacing: 20) {
-                        Text("🐾")
-                            .font(.system(size: 60))
+                        LinkPawIcon(size: 120)
+                            .padding(.bottom, 10)
                         Text("LinkPaw is ready.")
                             .font(.largeTitle)
                             .foregroundColor(.primary)
