@@ -120,6 +120,15 @@ do
 		READER_MODE=true
 		shift
 		;;
+	--)
+		shift
+		while [[ $# -gt 0 ]]; do
+			assertOnlyOne URL
+			URL="$1"
+			shift
+		done
+		break
+		;;
 	--*|-*)
 		echo "Error: Unknown parameter: $1"
 		usage
@@ -145,7 +154,8 @@ then
 	SIGNATURE=$(printf "${NAME}${OPEN_URL_IN_CONTAINER_SIGNING_KEY}" | openssl dgst -sha256 | cut -d " " -f 2)
 fi
 
-URL=$(urlencode $URL)
+URL=$(urlencode "$URL")
+NAME=$(urlencode "$NAME")
 
 FULL_URL="ext+container:url=${URL}&name=${NAME}"
 

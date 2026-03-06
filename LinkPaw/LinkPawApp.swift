@@ -7,10 +7,11 @@ struct LinkPawApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView(profiles: profileManager.profiles, urlToOpen: urlToOpen ?? URL(string: "https://duckduckgo.com")!)
+            ContentView(profiles: profileManager.profiles, urlToOpen: urlToOpen)
                 .onOpenURL { url in
                     self.urlToOpen = url
                 }
         }
+        .windowResizability(.contentSize)
     }
 }

@@ -78,6 +78,9 @@ struct ContentView: View {
     let profiles: [BrowserProfile]
     let urlToOpen: URL?
     @State private var showingSyncStatus = false
+    @State private var showingDefaultPrompt = false
+    @FocusState private var listIsFocused: Bool
+    @StateObject private var statusManager = BrowserStatusManager()
 
     var body: some View {
         ScrollViewReader { proxy in
@@ -107,54 +110,189 @@ struct ContentView: View {
                             .buttonStyle(.bordered)
                             .id(profile.id)
                         }
-                        .onKeyPress { event in
-                            if let char = event.characters.first?.lowercased(), char.count == 1 {
-                                if let match = profiles.first(where: { $0.name.lowercased().hasPrefix(String(char)) }) {
-                                    withAnimation {
-                                        proxy.scrollTo(match.id, anchor: .top)
-                                    }
-                                    return .handled
-                                }
-                            }
-                            return .ignored
+                        .focused($listIsFocused)
+                        .onAppear {
+                            listIsFocused = true
                         }
                     }
                 } else {
-                    VStack(spacing: 20) {
-                        LinkPawIcon(size: 120)
-                            .padding(.bottom, 10)
-                        Text("LinkPaw is ready.")
-                            .font(.largeTitle)
+                    // ... home screen view ...
+                    VStack(spacing: 30) {
+                        LinkPawIcon(size: 160)
+                            .padding(.top, 40)
+                        
+                        Text("LinkPaw")
+                            .font(.system(size: 48, weight: .bold, design: .rounded))
                             .foregroundColor(.primary)
-                        Text("Set LinkPaw as your default browser to start, or sync your Firefox containers to create standalone browser apps.")
-                            .font(.body)
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal, 40)
-                            .foregroundColor(.secondary)
                         
-                        Button(action: {
-                            let generator = StubGenerator()
-                            generator.generateStubs(for: profiles)
-                            showingSyncStatus = true
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-                                showingSyncStatus = false
+                        if !statusManager.isDefault {
+                            VStack(spacing: 16) {
+                                Text("LinkPaw is not your default browser.")
+                                    .font(.headline)
+                                    .foregroundColor(.orange)
+                                
+                                Button(action: {
+                                    statusManager.setAsDefault()
+                                }) {
+                                    Text("Set LinkPaw as Default Browser")
+                                        .font(.headline)
+                                        .padding(.horizontal, 20)
+                                        .padding(.vertical, 10)
+                                }
+                                .buttonStyle(.borderedProminent)
+                                .tint(.orange)
+                                
+                                Text("Links will open in this app, allowing you to choose the target container or profile.")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                    .multilineTextAlignment(.center)
+                                    .padding(.horizontal, 40)
                             }
-                        }) {
-                            Label("Sync Browser Stubs", systemImage: "arrow.triangle.2.circlepath")
-                                .padding()
+                            .padding()
+                            .background(RoundedRectangle(cornerRadius: 16).fill(Color.orange.opacity(0.1)))
+                            .padding(.horizontal, 30)
+                        } else {
+                            HStack {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundColor(.green)
+                                Text("LinkPaw is your default browser.")
+                                    .font(.headline)
+                            }
+                            .padding()
+                            .background(RoundedRectangle(cornerRadius: 16).fill(Color.green.opacity(0.1)))
                         }
-                        .buttonStyle(.borderedProminent)
                         
-                        if showingSyncStatus {
-                            Text("Stubs generated in 'Applications/LinkPaw Browsers'")
-                                .font(.caption)
-                                .foregroundColor(.green)
+                        Spacer()
+                        
+                        VStack(spacing: 12) {
+                            Button(action: {
+                                let generator = StubGenerator()
+                                generator.generateStubs(for: profiles)
+                                showingSyncStatus = true
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                                    showingSyncStatus = false
+                                }
+                            }) {
+                                Label("Sync Browser Stubs", systemImage: "arrow.triangle.2.circlepath")
+                                    .frame(minWidth: 200)
+                            }
+                            .buttonStyle(.bordered)
+                            
+                            if showingSyncStatus {
+                                Text("Stubs generated in 'Applications/LinkPaw Browsers'")
+                                    .font(.caption)
+                                    .foregroundColor(.green)
+                            }
+                            
+                            Button("Check Default Status Again") {
+                                statusManager.checkIfDefault()
+                            }
+                            .buttonStyle(.plain)
+                            .font(.caption)
+                            .foregroundColor(.secondary)
                         }
-                    }.frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .padding(.bottom, 40)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
             }
+            .onKeyPress { event in
+                if let char = event.characters.first?.lowercased() {
+                    if let match = profiles.first(where: { $0.name.lowercased().hasPrefix(char) }) {
+                        withAnimation {
+                            proxy.scrollTo(match.id, anchor: .top)
+                        }
+                        return .handled
+                    }
+                }
+                return .ignored
+            }
         }
-        .frame(minWidth: 250, minHeight: 400, idealHeight: 500)
+        .frame(minWidth: 400, minHeight: 600)
+        .onAppear {
+            handleURLOnAppear()
+        }
+        .onChange(of: urlToOpen) { newValue in
+            if let url = newValue {
+                MeetingAppManager.tryLaunchInNativeApp(url: url)
+            }
+        }
+        .alert("Set as Default Browser?", isPresented: $showingDefaultPrompt) {
+            Button("Set as Default") {
+                statusManager.setAsDefault()
+            }
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text("LinkPaw needs to be your default browser to help you manage your container and profile links.")
+        }
+    }
+
+    private func handleURLOnAppear() {
+        statusManager.checkIfDefault()
+        
+        if let url = urlToOpen {
+            MeetingAppManager.tryLaunchInNativeApp(url: url)
+        } else if !statusManager.isDefault {
+            showingDefaultPrompt = true
+        }
+    }
+}
+
+// MARK: - Meeting App Manager
+struct MeetingAppManager {
+    static func tryLaunchInNativeApp(url: URL) {
+        let urlString = url.absoluteString.lowercased()
+        
+        // Zoom URLs: zoom.us/j/ or zoom.us/s/
+        if urlString.contains("zoom.us/j/") || urlString.contains("zoom.us/s/") {
+            if launchApp(bundleID: "us.zoom.xos", url: url) {
+                NSApplication.shared.terminate(nil)
+                return
+            }
+        }
+        
+        // Teams URLs: teams.microsoft.com/l/meetup-join/
+        if urlString.contains("teams.microsoft.com/l/meetup-join/") {
+            // Check for New Teams first, then Classic
+            if launchApp(bundleID: "com.microsoft.teams2", url: url) || 
+               launchApp(bundleID: "com.microsoft.teams", url: url) {
+                NSApplication.shared.terminate(nil)
+                return
+            }
+        }
+    }
+    
+    @discardableResult
+    private static func launchApp(bundleID: String, url: URL) -> Bool {
+        if let appURL = NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleID) {
+            let configuration = NSWorkspace.OpenConfiguration()
+            NSWorkspace.shared.open([url], withApplicationAt: appURL, configuration: configuration, completionHandler: nil)
+            return true
+        }
+        return false
+    }
+}
+
+// MARK: - Browser Status Manager
+class BrowserStatusManager: ObservableObject {
+    @Published var isDefault: Bool = false
+    private let bundleID = "com.zonywhoop.LinkPaw" as CFString
+    
+    func checkIfDefault() {
+        if let currentHandler = LSCopyDefaultHandlerForURLScheme("https" as CFString)?.takeRetainedValue() {
+            isDefault = (currentHandler as String) == (bundleID as String)
+        } else {
+            isDefault = false
+        }
+    }
+    
+    func setAsDefault() {
+        LSSetDefaultHandlerForURLScheme("http" as CFString, bundleID)
+        LSSetDefaultHandlerForURLScheme("https" as CFString, bundleID)
+        // Refresh after a short delay to allow system dialog to complete
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+            self.checkIfDefault()
+        }
     }
 }
 
@@ -336,14 +474,14 @@ struct Launcher {
         switch profile {
         case .firefox(let container):
             if container.isPrivate {
-                task.executableURL = URL(fileURLWithPath: "/Applications/Firefox.app/Contents/MacOS/firefox")
-                task.arguments = ["--private-window", urlString]
+                task.executableURL = URL(fileURLWithPath: "/usr/bin/open")
+                task.arguments = ["-n", "-b", "org.mozilla.firefox", "--args", "--private-window", "--", urlString]
             } else if container.name == "Default" {
-                task.executableURL = URL(fileURLWithPath: "/Applications/Firefox.app/Contents/MacOS/firefox")
-                task.arguments = [urlString]
+                task.executableURL = URL(fileURLWithPath: "/usr/bin/open")
+                task.arguments = ["-b", "org.mozilla.firefox", "--", urlString]
             } else {
                 guard let scriptPath = Bundle.main.path(forResource: "firefox-container", ofType: nil) else {
-                    print("Error: Could not find firefox-container script in bundle")
+                    print("Error: Could find firefox-container script in bundle")
                     return
                 }
                 
@@ -354,7 +492,7 @@ struct Launcher {
                 chmodTask.waitUntilExit()
 
                 task.executableURL = URL(fileURLWithPath: "/bin/bash")
-                task.arguments = [scriptPath, "--name", container.name, urlString]
+                task.arguments = [scriptPath, "--name", container.name, "--", urlString]
             }
             
         case .chrome(let profile):
@@ -372,6 +510,7 @@ struct Launcher {
             if profile.isPrivate {
                 args.append("-incognito")
             }
+            args.append("--")
             args.append(urlString)
             task.arguments = args
             
@@ -387,8 +526,10 @@ struct Launcher {
                 } else {
                     args.append("--private-window")
                 }
+                args.append("--")
             } else {
                 args = ["-b", browser.bundleIdentifier]
+                args.append("--")
             }
             args.append(urlString)
             task.arguments = args
@@ -416,8 +557,7 @@ struct ContentView_Previews: PreviewProvider {
                 .chrome(ChromeProfile(name: "Default", directory: "Default", browserName: "Google Chrome", isPrivate: false)),
                 .generic(GenericBrowser(name: "Safari", bundleIdentifier: "com.apple.Safari", appPath: "/Applications/Safari.app", isPrivate: false))
             ],
-            urlToOpen: URL(string: "https://apple.com")
+            urlToOpen: nil
         )
     }
 }
-

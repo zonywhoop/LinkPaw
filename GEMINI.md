@@ -10,7 +10,8 @@
 **Notes:** 
   1. The script `scripts/firefox-container` has everything needed to open a URL in a FireFox container using the plugin from `https://github.com/honsiorovskyi/open-url-in-container`.
   2. Use the language best supported on an out of the box version of MacOS
-  3. 
+  3. Produce a new build after any code changes and fix any issues that come up
+  4. All code should be written to protect against URL injection and escape attacks and use best practices from OWASP
 
 ## 2. Coding Conventions
 

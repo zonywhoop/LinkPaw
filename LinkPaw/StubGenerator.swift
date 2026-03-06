@@ -47,20 +47,26 @@ class StubGenerator {
         
         print("Generating stub: \(appURL.path)")
         
+        // Escape container name for AppleScript string literal
+        let escapedContainerName = container.name
+            .replacingOccurrences(of: "\\", with: "\\\\")
+            .replacingOccurrences(of: "\"", with: "\\\"")
+
         // 1. Create AppleScript source
         // Use quoted form of for all arguments to be safe
+        // Use -- to separate URL from options to prevent flag confusion
         let appleScript = """
         on open location this_url
             set scriptPath to (path to me as string) & "Contents:Resources:firefox-container"
             set posixScriptPath to POSIX path of scriptPath
-            do shell script (quoted form of posixScriptPath) & " " & (quoted form of this_url) & " --name " & (quoted form of "\(container.name)")
+            do shell script (quoted form of posixScriptPath) & " --name " & (quoted form of "\(escapedContainerName)") & " -- " & (quoted form of this_url)
         end open location
         
         on run
             -- If launched without URL, just open Firefox in that container
             set scriptPath to (path to me as string) & "Contents:Resources:firefox-container"
             set posixScriptPath to POSIX path of scriptPath
-            do shell script (quoted form of posixScriptPath) & " --name " & (quoted form of "\(container.name)") & " about:newtab"
+            do shell script (quoted form of posixScriptPath) & " --name " & (quoted form of "\(escapedContainerName)") & " -- about:newtab"
         end run
         """
         
