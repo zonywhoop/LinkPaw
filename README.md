@@ -46,5 +46,12 @@ This script will:
 4. Create `.dmg` and `.zip` artifacts.
 5. Create a GitHub Release and upload the assets.
 
+## Contributing
+
+Contributions are welcome! Please read our [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests. All participants are expected to adhere to our [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
+
 ## License
-Copyright © 2026 Zonywhoop. All rights reserved.
+
+This project is licensed under the **GNU General Public License v2.0** - see the [LICENSE](LICENSE) file for details.
+
+Copyright © 2026 Edward McLain.

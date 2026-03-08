@@ -9,9 +9,13 @@ SCHEME="LinkPaw"
 BUNDLE_ID="com.zonywhoop.LinkPaw"
 EXPORT_OPTIONS="scripts/ExportOptions.plist"
 BUILD_DIR="build"
+OUTPUT_DIR="${BUILD_DIR}/output"
 ARCHIVE_PATH="${BUILD_DIR}/LinkPaw.xcarchive"
 EXPORT_PATH="${BUILD_DIR}/Export"
 INFO_PLIST="LinkPaw/Info.plist"
+
+# Ensure output directory exists
+mkdir -p "${OUTPUT_DIR}"
 
 # Function to get version from Info.plist
 get_version() {
@@ -49,6 +53,8 @@ fi
 
 DMG_NAME="LinkPaw-${RELEASE_TAG}.dmg"
 ZIP_NAME="LinkPaw-${RELEASE_TAG}.zip"
+DMG_PATH="${OUTPUT_DIR}/${DMG_NAME}"
+ZIP_PATH="${OUTPUT_DIR}/${ZIP_NAME}"
 
 echo "Releasing ${RELEASE_TAG}..."
 
@@ -73,19 +79,19 @@ APP_PATH="${EXPORT_PATH}/LinkPaw.app"
 
 # 4. Create ZIP
 echo "Creating ZIP..."
-rm -f "${ZIP_NAME}"
-(cd "${EXPORT_PATH}" && zip -r "../../${ZIP_NAME}" "LinkPaw.app")
+rm -f "${ZIP_PATH}"
+(cd "${EXPORT_PATH}" && zip -r "../../${ZIP_PATH}" "LinkPaw.app")
 
 # 5. Create DMG
 echo "Creating DMG..."
-rm -f "${DMG_NAME}"
-DMG_TMP_DIR="build/dmg_tmp"
+rm -f "${DMG_PATH}"
+DMG_TMP_DIR="${BUILD_DIR}/dmg_tmp"
 rm -rf "${DMG_TMP_DIR}"
 mkdir -p "${DMG_TMP_DIR}"
 cp -R "${APP_PATH}" "${DMG_TMP_DIR}/"
 ln -s /Applications "${DMG_TMP_DIR}/Applications"
 
-hdiutil create -volname "LinkPaw" -srcfolder "${DMG_TMP_DIR}" -ov -format UDZO "${DMG_NAME}"
+hdiutil create -volname "LinkPaw" -srcfolder "${DMG_TMP_DIR}" -ov -format UDZO "${DMG_PATH}"
 
 # 6. GitHub Release
 echo "Uploading to GitHub..."
@@ -94,10 +100,10 @@ git push origin "${RELEASE_TAG}"
 
 if gh release view "${RELEASE_TAG}" >/dev/null 2>&1; then
     echo "Release ${RELEASE_TAG} already exists. Updating..."
-    gh release upload "${RELEASE_TAG}" "${DMG_NAME}" "${ZIP_NAME}" --clobber
+    gh release upload "${RELEASE_TAG}" "${DMG_PATH}" "${ZIP_PATH}" --clobber
 else
     echo "Creating new release ${RELEASE_TAG}..."
-    gh release create "${RELEASE_TAG}" "${DMG_NAME}" "${ZIP_NAME}" --title "Release ${RELEASE_TAG}" --notes "Automatically generated release for ${RELEASE_TAG}"
+    gh release create "${RELEASE_TAG}" "${DMG_PATH}" "${ZIP_PATH}" --title "Release ${RELEASE_TAG}" --notes "Automatically generated release for ${RELEASE_TAG}"
 fi
 
 echo "Done! Release ${RELEASE_TAG} uploaded to GitHub."
