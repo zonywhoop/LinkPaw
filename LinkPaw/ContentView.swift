@@ -82,6 +82,17 @@ struct ContentView: View {
     @FocusState private var listIsFocused: Bool
     @StateObject private var statusManager = BrowserStatusManager()
 
+    private var requiredWidth: CGFloat {
+        let font = NSFont.systemFont(ofSize: NSFont.systemFontSize, weight: .medium)
+        let maxWidth = profiles.reduce(0) { currentMax, profile in
+            let text = "\(profile.name) - \(profile.subtitle)"
+            let width = (text as NSString).size(withAttributes: [.font: font]).width
+            return max(currentMax, width)
+        }
+        // Add 20px padding on each side (total 40px)
+        return max(400, maxWidth + 40)
+    }
+
     var body: some View {
         ScrollViewReader { proxy in
             VStack(spacing: 0) {
@@ -89,9 +100,13 @@ struct ContentView: View {
                     HeaderView(url: url)
                     
                     if profiles.isEmpty {
-                        Text("No browsers found.")
-                            .foregroundColor(.secondary)
-                            .frame(maxHeight: .infinity)
+                        VStack {
+                            Text("No browsers found.")
+                                .foregroundColor(.secondary)
+                            Text("Profile count: \(profiles.count)")
+                                .font(.caption)
+                        }
+                        .frame(maxHeight: .infinity)
                     } else {
                         List(profiles) { profile in
                             Button(action: {
@@ -107,7 +122,7 @@ struct ContentView: View {
                                 .padding(.vertical, 8)
                                 .contentShape(Rectangle())
                             }
-                            .buttonStyle(.bordered)
+                            .buttonStyle(SystemHighlightButtonStyle())
                             .id(profile.id)
                         }
                         .focused($listIsFocused)
@@ -208,7 +223,7 @@ struct ContentView: View {
                 return .ignored
             }
         }
-        .frame(minWidth: 400, minHeight: 600)
+        .frame(minWidth: requiredWidth, maxWidth: requiredWidth, minHeight: 600)
         .onAppear {
             handleURLOnAppear()
         }
@@ -327,6 +342,15 @@ struct EffectView: NSViewRepresentable {
         return view
     }
     func updateNSView(_ nsView: NSVisualEffectView, context: Context) {}
+}
+
+struct SystemHighlightButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .background(configuration.isPressed ? Color(NSColor.selectedControlColor).opacity(0.8) : Color(NSColor.selectedControlColor).opacity(0.4))
+            .cornerRadius(6)
+            .foregroundColor(.primary)
+    }
 }
 
 // MARK: - Profile Discovery & Models

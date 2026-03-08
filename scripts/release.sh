@@ -28,24 +28,23 @@ if [ -n "$1" ]; then
     NEW_VERSION=$1
     echo "Updating version to ${NEW_VERSION}..."
     /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString ${NEW_VERSION}" "${INFO_PLIST}"
-    
+
     # Optional: Increment build number
     CURRENT_BUILD=$(get_build_number)
     NEW_BUILD=$((CURRENT_BUILD + 1))
     /usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${NEW_BUILD}" "${INFO_PLIST}"
-    
+
     echo "Committing version changes..."
     git add "${INFO_PLIST}"
     git commit -m "Bump version to ${NEW_VERSION} (build ${NEW_BUILD})"
-    
-    RELEASE_TAG="v${NEW_VERSION}.${NEW_BUILD}"
+
+    RELEASE_TAG="v${NEW_VERSION}"
     echo "Creating tag ${RELEASE_TAG}..."
     git tag -a "${RELEASE_TAG}" -m "Release ${RELEASE_TAG}"
 else
     echo "No version provided. Using current version from Info.plist..."
     VERSION=$(get_version)
-    BUILD_NUMBER=$(get_build_number)
-    RELEASE_TAG="v${VERSION}.${BUILD_NUMBER}"
+    RELEASE_TAG="v${VERSION}"
 fi
 
 DMG_NAME="LinkPaw-${RELEASE_TAG}.dmg"
