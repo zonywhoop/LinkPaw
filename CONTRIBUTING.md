@@ -35,3 +35,15 @@ If you have interst in helping to maintaing this code base or even just review P
 ## Questions?
 
 If you have questions or need help, please open an issue on the project repository.
+
+## AI Assisted Development
+
+This repository includes configuration files for various AI coding assistants to ensure consistent context and coding standards.
+
+-   **Cursor:** `.cursorrules`
+-   **Windsurf:** `.windsurfrules`
+-   **GitHub Copilot:** `.github/copilot-instructions.md`
+-   **Gemini:** `GEMINI.md`
+-   **General Context:** `docs/AI_CONTEXT.md`
+
+Please ensure your AI assistant is aware of these files when generating code.

@@ -1,6 +1,4 @@
-# Project Context: LinkPaw (GEMINI.md)
-
-> **Sync Note:** This file should be kept in sync with `docs/AI_CONTEXT.md`.
+# LinkPaw AI Development Context
 
 ## Project Overview
 **Name:** LinkPaw
@@ -25,7 +23,7 @@
 *   `LinkPaw/`: Main application source.
     *   `LinkPawApp.swift`: Entry point.
     *   `ContentView.swift`: Main UI.
-    *   `LinkPaw/scripts/firefox-container`: Helper script for Firefox container logic.
+    *   `scripts/firefox-container`: Helper script for Firefox container logic.
 *   `scripts/`: Release and utility scripts.
     *   `release.sh`: Release automation.
 

@@ -1,0 +1,20 @@
+# LinkPaw Windsurf Rules
+
+## Context
+This project is LinkPaw, a macOS browser picker/shim written in Swift/SwiftUI.
+
+## Core Directives
+1.  **Follow `docs/AI_CONTEXT.md`:** This file contains the master project context. Read it first.
+2.  **SwiftUI Best Practices:** Use MVVM. Ensure `ContentView` and `LinkPawApp` are the entry points.
+3.  **Firefox Containers:** Use `LinkPaw/scripts/firefox-container` logic for `ext+container:` handling.
+4.  **Security:** Validate all URLs. No injection vulnerabilities.
+
+## Coding Style
+-   Use 4 spaces for indentation.
+-   Document all public APIs.
+-   Use `guard` for early exits.
+-   Prefer `struct` over `class` for data models.
+
+## Testing
+-   Run tests via `xcodebuild test` or Xcode.
+-   Add tests for new features.
