@@ -13,6 +13,7 @@ OUTPUT_DIR="${BUILD_DIR}/output"
 ARCHIVE_PATH="${BUILD_DIR}/LinkPaw.xcarchive"
 EXPORT_PATH="${BUILD_DIR}/Export"
 INFO_PLIST="LinkPaw/Info.plist"
+PUSH_GITHUB_RELEASE=${PUSH_GITHUB_RELASE:1}
 
 # Ensure output directory exists
 mkdir -p "${OUTPUT_DIR}"
@@ -93,17 +94,21 @@ ln -s /Applications "${DMG_TMP_DIR}/Applications"
 
 hdiutil create -volname "LinkPaw" -srcfolder "${DMG_TMP_DIR}" -ov -format UDZO "${DMG_PATH}"
 
-# 6. GitHub Release
-echo "Uploading to GitHub..."
-# Push tag first
-git push origin "${RELEASE_TAG}"
+if [ $PUSH_GITHUB_RELEASE -eq 1 ]; then
+  # 6. GitHub Release
+  echo "Uploading to GitHub..."
+  # Push tag first
+  git push origin "${RELEASE_TAG}"
 
-if gh release view "${RELEASE_TAG}" >/dev/null 2>&1; then
-    echo "Release ${RELEASE_TAG} already exists. Updating..."
-    gh release upload "${RELEASE_TAG}" "${DMG_PATH}" "${ZIP_PATH}" --clobber
+  if gh release view "${RELEASE_TAG}" >/dev/null 2>&1; then
+      echo "Release ${RELEASE_TAG} already exists. Updating..."
+      gh release upload "${RELEASE_TAG}" "${DMG_PATH}" "${ZIP_PATH}" --clobber
+  else
+      echo "Creating new release ${RELEASE_TAG}..."
+      gh release create "${RELEASE_TAG}" "${DMG_PATH}" "${ZIP_PATH}" --title "Release ${RELEASE_TAG}" --notes "Automatically generated release for ${RELEASE_TAG}"
+  fi
+
+  echo "Done! Release ${RELEASE_TAG} uploaded to GitHub."
 else
-    echo "Creating new release ${RELEASE_TAG}..."
-    gh release create "${RELEASE_TAG}" "${DMG_PATH}" "${ZIP_PATH}" --title "Release ${RELEASE_TAG}" --notes "Automatically generated release for ${RELEASE_TAG}"
+  echo "Done! Release was NOT uploaded to GitHub."
 fi
-
-echo "Done! Release ${RELEASE_TAG} uploaded to GitHub."

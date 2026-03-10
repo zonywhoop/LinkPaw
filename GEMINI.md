@@ -23,11 +23,11 @@
 
 ## Key Files & Directories
 *   `LinkPaw/`: Main application source.
-    *   `LinkPawApp.swift`: Entry point.
-    *   `ContentView.swift`: Main UI.
-    *   `LinkPaw/scripts/firefox-container`: Helper script for Firefox container logic.
+*   `LinkPaw/scripts/firefox-container`: Helper script for Firefox container logic.
+  *   `LinkPawApp.swift`: Entry point.
+  *   `ContentView.swift`: Main UI.
 *   `scripts/`: Release and utility scripts.
-    *   `release.sh`: Release automation.
+  *   `release.sh`: Release automation.
 
 ## Coding Standards
 *   **Style:** SwiftLint conventions. Spaces over tabs (4 spaces).
