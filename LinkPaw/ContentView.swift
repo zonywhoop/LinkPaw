@@ -1,4 +1,5 @@
 import SwiftUI
+import AppKit
 
 // MARK: - Data Models
 struct FirefoxContainer: Identifiable, Hashable {
@@ -75,6 +76,7 @@ enum BrowserProfile: Identifiable, Hashable {
 
 // MARK: - ContentView
 struct ContentView: View {
+    @EnvironmentObject private var updateManager: UpdateManager
     let profiles: [BrowserProfile]
     let urlToOpen: URL?
     @State private var showingSyncStatus = false
@@ -96,6 +98,10 @@ struct ContentView: View {
     var body: some View {
         ScrollViewReader { proxy in
             VStack(spacing: 0) {
+                if updateManager.isUpdateAvailable {
+                    UpdateBannerView(version: updateManager.latestVersion ?? "", downloadURL: updateManager.downloadURL)
+                }
+                
                 if let url = urlToOpen {
                     HeaderView(url: url)
                     
@@ -312,6 +318,45 @@ class BrowserStatusManager: ObservableObject {
 }
 
 // MARK: - Helper Views & Extensions
+struct UpdateBannerView: View {
+    let version: String
+    let downloadURL: URL?
+    @EnvironmentObject private var updateManager: UpdateManager
+
+    var body: some View {
+        HStack {
+            Image(systemName: "arrow.down.circle.fill")
+                .foregroundColor(.blue)
+            Text("A new version (\(version)) is available!")
+                .fontWeight(.medium)
+            Spacer()
+            if let url = downloadURL {
+                Button("Update Now") {
+                    NSWorkspace.shared.open(url)
+                }
+                .buttonStyle(.borderedProminent)
+            } else {
+                Button("View Release") {
+                    if let repoURL = URL(string: "https://github.com/zonywhoop/LinkPaw/releases/latest") {
+                        NSWorkspace.shared.open(repoURL)
+                    }
+                }
+                .buttonStyle(.borderedProminent)
+            }
+            Button(action: {
+                updateManager.isUpdateAvailable = false
+            }) {
+                Image(systemName: "xmark")
+                    .foregroundColor(.secondary)
+            }
+            .buttonStyle(.plain)
+        }
+        .padding()
+        .background(Color.blue.opacity(0.1))
+        .border(Color.blue.opacity(0.2), width: 1)
+    }
+}
+
 struct HeaderView: View {
     let url: URL
     
@@ -583,5 +628,6 @@ struct ContentView_Previews: PreviewProvider {
             ],
             urlToOpen: nil
         )
+        .environmentObject(UpdateManager())
     }
 }
