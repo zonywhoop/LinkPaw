@@ -3,6 +3,9 @@ import AppKit
 import SwiftData
 import CryptoKit
 import Security
+import OSLog
+
+private let logger = Logger(subsystem: "com.zonywhoop.LinkPaw", category: "UsageStats")
 
 // MARK: - Usage Stats Model
 @Model
@@ -11,7 +14,7 @@ final class UsageStats {
     var browserId: String
     var count: Int
     var lastUsed: Date
-    
+
     init(urlHash: String, browserId: String) {
         self.urlHash = urlHash
         self.browserId = browserId
@@ -333,8 +336,11 @@ class StatsManager: ObservableObject {
         let hash = generateHash(for: sanitizedURL)
         let browserId = profile.id
         
+        logger.info("Recording selection for URL hash: \(hash, privacy: .public) in browser: \(browserId, privacy: .public)")
+        
         // Print store location to help user find it
         if let storeURL = context.container.configurations.first?.url {
+            logger.info("Usage stats database path: \(storeURL.path, privacy: .public)")
             print("Usage stats database: \(storeURL.path)")
         }
         
@@ -348,12 +354,16 @@ class StatsManager: ObservableObject {
             if let existing = try context.fetch(descriptor).first {
                 existing.count += 1
                 existing.lastUsed = Date()
+                logger.info("Updated existing record. New count: \(existing.count)")
             } else {
                 let newRecord = UsageStats(urlHash: hash, browserId: browserId)
                 context.insert(newRecord)
+                logger.info("Inserted new record.")
             }
             try context.save()
+            logger.info("Successfully saved context.")
         } catch {
+            logger.error("Error saving selection stats: \(error.localizedDescription, privacy: .public)")
             print("Error saving selection stats: \(error)")
         }
     }
