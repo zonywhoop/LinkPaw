@@ -15,6 +15,13 @@ EXPORT_PATH="${BUILD_DIR}/Export"
 INFO_PLIST="LinkPaw/Info.plist"
 PUSH_GITHUB_RELEASE=${PUSH_GITHUB_RELASE:-1}
 
+# 0. Check for uncommitted changes
+if [ -n "$(git status --porcelain)" ]; then
+    echo "Error: You have uncommitted changes. Please commit or stash them before releasing."
+    git status --short
+    exit 1
+fi
+
 # Ensure output directory exists
 mkdir -p "${OUTPUT_DIR}"
 
