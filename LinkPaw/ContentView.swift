@@ -140,7 +140,10 @@ struct ContentView: View {
                             Button(action: {
                                 statsManager.recordSelection(url: url, profile: profile, context: modelContext)
                                 Launcher.launch(url: url, in: profile)
-                                NSApplication.shared.terminate(nil)
+                                // Add a short delay before terminating to ensure SwiftData flushes to disk
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                    NSApplication.shared.terminate(nil)
+                                }
                             }) {
                                 HStack {
                                     Spacer()
@@ -329,6 +332,11 @@ class StatsManager: ObservableObject {
         let sanitizedURL = sanitizeURL(url)
         let hash = generateHash(for: sanitizedURL)
         let browserId = profile.id
+        
+        // Print store location to help user find it
+        if let storeURL = context.container.configurations.first?.url {
+            print("Usage stats database: \(storeURL.path)")
+        }
         
         let descriptor = FetchDescriptor<UsageStats>(
             predicate: #Predicate<UsageStats> { record in
