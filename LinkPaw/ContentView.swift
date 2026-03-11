@@ -141,6 +141,7 @@ struct ContentView: View {
                     } else {
                         List(profiles) { profile in
                             Button(action: {
+                                logger.notice("Profile selected: \(profile.name, privacy: .public)")
                                 statsManager.recordSelection(url: url, profile: profile, context: modelContext)
                                 Launcher.launch(url: url, in: profile)
                                 // Add a short delay before terminating to ensure SwiftData flushes to disk
@@ -336,12 +337,14 @@ class StatsManager: ObservableObject {
         let hash = generateHash(for: sanitizedURL)
         let browserId = profile.id
         
-        logger.info("Recording selection for URL hash: \(hash, privacy: .public) in browser: \(browserId, privacy: .public)")
+        logger.notice("Recording selection for URL hash: \(hash, privacy: .public) in browser: \(browserId, privacy: .public)")
         
         // Print store location to help user find it
         if let storeURL = context.container.configurations.first?.url {
-            logger.info("Usage stats database path: \(storeURL.path, privacy: .public)")
+            logger.notice("Usage stats database path: \(storeURL.path, privacy: .public)")
             print("Usage stats database: \(storeURL.path)")
+        } else {
+            logger.notice("Usage stats database path: (could not determine)")
         }
         
         let descriptor = FetchDescriptor<UsageStats>(
@@ -354,14 +357,14 @@ class StatsManager: ObservableObject {
             if let existing = try context.fetch(descriptor).first {
                 existing.count += 1
                 existing.lastUsed = Date()
-                logger.info("Updated existing record. New count: \(existing.count)")
+                logger.notice("Updated existing record. New count: \(existing.count)")
             } else {
                 let newRecord = UsageStats(urlHash: hash, browserId: browserId)
                 context.insert(newRecord)
-                logger.info("Inserted new record.")
+                logger.notice("Inserted new record.")
             }
             try context.save()
-            logger.info("Successfully saved context.")
+            logger.notice("Successfully saved context.")
         } catch {
             logger.error("Error saving selection stats: \(error.localizedDescription, privacy: .public)")
             print("Error saving selection stats: \(error)")
