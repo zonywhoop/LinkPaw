@@ -142,10 +142,16 @@ struct ContentView: View {
                         List(profiles) { profile in
                             Button(action: {
                                 logger.notice("Profile selected: \(profile.name, privacy: .public)")
+                                
+                                // Protect the process from being terminated while we save to the database
+                                let activity = ProcessInfo.processInfo.beginActivity(options: .userInitiated, reason: "Recording link selection")
+                                
                                 statsManager.recordSelection(url: url, profile: profile, context: modelContext)
                                 Launcher.launch(url: url, in: profile)
-                                // Add a short delay before terminating to ensure SwiftData flushes to disk
+                                
+                                // Give a tiny moment for the disk flush, then terminate
                                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                    ProcessInfo.processInfo.endActivity(activity)
                                     NSApplication.shared.terminate(nil)
                                 }
                             }) {
