@@ -8,7 +8,7 @@ struct LinkPawApp: App {
     @State private var urlToOpen: URL?
 
     var body: some Scene {
-        WindowGroup {
+        WindowGroup("LinkPaw") {
             ContentView(profiles: profileManager.profiles, urlToOpen: urlToOpen)
                 .environmentObject(updateManager)
                 .onOpenURL { url in

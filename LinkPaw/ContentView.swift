@@ -163,7 +163,6 @@ struct ContentView: View {
                     // ... home screen view ...
                     VStack(spacing: 30) {
                         LinkPawIcon(size: 160)
-                            .padding(.top, 40)
                         
                         Text("LinkPaw")
                             .font(.system(size: 48, weight: .bold, design: .rounded))
@@ -302,6 +301,7 @@ struct ContentView: View {
         } message: {
             Text("LinkPaw needs to be your default browser to help you manage your container and profile links.")
         }
+        .padding(.top, 40)
     }
 
     private func handleURLOnAppear() {
