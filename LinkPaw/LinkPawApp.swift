@@ -10,10 +10,28 @@ struct LinkPawApp: App {
     @StateObject private var profileManager = ProfileManager()
     @StateObject private var updateManager = UpdateManager()
     @State private var urlToOpen: URL?
+    
+    let container: ModelContainer
 
     init() {
         // Disable state restoration to prevent app from trying to restore previous windows on launch
         UserDefaults.standard.set(false, forKey: "ApplePersistenceIgnoreState")
+        
+        let appSupport = URL.applicationSupportDirectory
+        let folder = appSupport.appending(path: "com.zonywhoop.LinkPaw", directoryHint: .isDirectory)
+        
+        // Ensure directory exists
+        try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        
+        let config = ModelConfiguration("UsageStats", url: folder.appending(path: "stats.sqlite"))
+        
+        do {
+            container = try ModelContainer(for: UsageStats.self, configurations: config)
+        } catch {
+            appLogger.critical("Failed to create ModelContainer: \(error.localizedDescription, privacy: .public)")
+            // Fallback to default if custom config fails
+            container = try! ModelContainer(for: UsageStats.self)
+        }
     }
 
     var body: some Scene {
@@ -29,7 +47,7 @@ struct LinkPawApp: App {
                 }
         }
         .windowResizability(.contentSize)
-        .modelContainer(for: UsageStats.self)
+        .modelContainer(container)
     }
 }
 
