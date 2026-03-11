@@ -1,4 +1,5 @@
 import SwiftUI
+import SwiftData
 
 @main
 struct LinkPawApp: App {
@@ -18,5 +19,6 @@ struct LinkPawApp: App {
                 }
         }
         .windowResizability(.contentSize)
+        .modelContainer(for: UsageStats.self)
     }
 }

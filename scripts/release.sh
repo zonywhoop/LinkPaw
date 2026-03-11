@@ -13,7 +13,7 @@ OUTPUT_DIR="${BUILD_DIR}/output"
 ARCHIVE_PATH="${BUILD_DIR}/LinkPaw.xcarchive"
 EXPORT_PATH="${BUILD_DIR}/Export"
 INFO_PLIST="LinkPaw/Info.plist"
-PUSH_GITHUB_RELEASE=${PUSH_GITHUB_RELASE:1}
+PUSH_GITHUB_RELEASE=${PUSH_GITHUB_RELASE:-1}
 
 # Ensure output directory exists
 mkdir -p "${OUTPUT_DIR}"

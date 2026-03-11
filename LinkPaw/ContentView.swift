@@ -1,5 +1,24 @@
 import SwiftUI
 import AppKit
+import SwiftData
+import CryptoKit
+import Security
+
+// MARK: - Usage Stats Model
+@Model
+final class UsageStats {
+    var urlHash: String
+    var browserId: String
+    var count: Int
+    var lastUsed: Date
+    
+    init(urlHash: String, browserId: String) {
+        self.urlHash = urlHash
+        self.browserId = browserId
+        self.count = 1
+        self.lastUsed = Date()
+    }
+}
 
 // MARK: - Data Models
 struct FirefoxContainer: Identifiable, Hashable {
@@ -77,6 +96,9 @@ enum BrowserProfile: Identifiable, Hashable {
 // MARK: - ContentView
 struct ContentView: View {
     @EnvironmentObject private var updateManager: UpdateManager
+    @Environment(\.modelContext) private var modelContext
+    @StateObject private var statsManager = StatsManager()
+    
     let profiles: [BrowserProfile]
     let urlToOpen: URL?
     @State private var showingSyncStatus = false
@@ -116,6 +138,7 @@ struct ContentView: View {
                     } else {
                         List(profiles) { profile in
                             Button(action: {
+                                statsManager.recordSelection(url: url, profile: profile, context: modelContext)
                                 Launcher.launch(url: url, in: profile)
                                 NSApplication.shared.terminate(nil)
                             }) {
@@ -212,7 +235,40 @@ struct ContentView: View {
                             .font(.caption)
                             .foregroundColor(.secondary)
                         }
-                        .padding(.bottom, 40)
+                        .padding(.bottom, 20)
+
+                        // Footer with Version, License, and GitHub info
+                        VStack(spacing: 8) {
+                            HStack(spacing: 15) {
+                                Button(action: {
+                                    updateManager.checkForUpdates(manual: true)
+                                }) {
+                                    Label("Check for Updates", systemImage: "arrow.clockwise.circle")
+                                }
+                                .buttonStyle(.plain)
+                                .foregroundColor(.blue)
+
+                                Link(destination: URL(string: "https://github.com/zonywhoop/LinkPaw")!) {
+                                    Label("GitHub", systemImage: "link")
+                                }
+                                .foregroundColor(.blue)
+                            }
+                            .font(.subheadline)
+
+                            VStack(spacing: 4) {
+                                Text("© 2026 zonywhoop")
+                                Text("Licensed under GNU GPL v2")
+                                    .font(.system(size: 10))
+                                
+                                if let currentVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String {
+                                    Text("Version \(currentVersion)")
+                                        .font(.system(size: 10))
+                                        .foregroundColor(.secondary)
+                                }
+                            }
+                            .foregroundColor(.secondary)
+                        }
+                        .padding(.bottom, 20)
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
@@ -256,6 +312,84 @@ struct ContentView: View {
         } else if !statusManager.isDefault {
             showingDefaultPrompt = true
         }
+    }
+}
+
+// MARK: - Stats Manager
+@MainActor
+class StatsManager: ObservableObject {
+    private let saltKey = "com.zonywhoop.LinkPaw.salt"
+    private var salt: Data?
+    
+    init() {
+        self.salt = getOrCreateSalt()
+    }
+    
+    func recordSelection(url: URL, profile: BrowserProfile, context: ModelContext) {
+        let sanitizedURL = sanitizeURL(url)
+        let hash = generateHash(for: sanitizedURL)
+        let browserId = profile.id
+        
+        let descriptor = FetchDescriptor<UsageStats>(
+            predicate: #Predicate<UsageStats> { record in
+                record.urlHash == hash && record.browserId == browserId
+            }
+        )
+        
+        do {
+            if let existing = try context.fetch(descriptor).first {
+                existing.count += 1
+                existing.lastUsed = Date()
+            } else {
+                let newRecord = UsageStats(urlHash: hash, browserId: browserId)
+                context.insert(newRecord)
+            }
+            try context.save()
+        } catch {
+            print("Error saving selection stats: \(error)")
+        }
+    }
+    
+    private func sanitizeURL(_ url: URL) -> String {
+        guard var components = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
+            return url.absoluteString
+        }
+        components.query = nil
+        components.fragment = nil
+        return components.string ?? url.absoluteString
+    }
+    
+    private func generateHash(for sanitizedURL: String) -> String {
+        guard let salt = self.salt, let urlData = sanitizedURL.data(using: .utf8) else {
+            let hash = SHA256.hash(data: sanitizedURL.data(using: .utf8) ?? Data())
+            return hash.map { String(format: "%02x", $0) }.joined()
+        }
+        var saltedData = urlData
+        saltedData.append(salt)
+        let hash = SHA256.hash(data: saltedData)
+        return hash.map { String(format: "%02x", $0) }.joined()
+    }
+    
+    private func getOrCreateSalt() -> Data {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrAccount as String: saltKey,
+            kSecReturnData as String: true
+        ]
+        var result: CFTypeRef?
+        let status = SecItemCopyMatching(query as CFDictionary, &result)
+        if status == errSecSuccess, let data = result as? Data {
+            return data
+        }
+        var newSalt = Data(count: 32)
+        _ = newSalt.withUnsafeMutableBytes { SecRandomCopyBytes(kSecRandomDefault, 32, $0.baseAddress!) }
+        let addQuery: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrAccount as String: saltKey,
+            kSecValueData as String: newSalt
+        ]
+        SecItemAdd(addQuery as CFDictionary, nil)
+        return newSalt
     }
 }
 
@@ -629,6 +763,7 @@ struct ContentView_Previews: PreviewProvider {
             urlToOpen: nil
         )
         .environmentObject(UpdateManager())
+        .modelContainer(for: UsageStats.self, inMemory: true)
     }
 }
 
